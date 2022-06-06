@@ -175,7 +175,7 @@ ErrorType EudmPlanner::ClassifyActionSeq(
 
 ErrorType EudmPlanner::PrepareMultiThreadContainers(const int n_sequence) {
   LOG(INFO) << "[Eudm][Process]Prepare multi-threading - " << n_sequence
-            << " threads.";
+            << " threads.";         //10种
 
   sim_res_.clear();
   sim_res_.resize(n_sequence, 0);
@@ -262,19 +262,19 @@ ErrorType EudmPlanner::RunEudm() {
                                  &surrounding_fsagents);
 
   auto action_script = dcp_tree_ptr_->action_script();
-  int n_sequence = action_script.size();
+  int n_sequence = action_script.size();          //27个
 
   // * prepare for multi-threading
   std::vector<std::thread> thread_set(n_sequence);
-  PrepareMultiThreadContainers(n_sequence);
+  PrepareMultiThreadContainers(n_sequence);//分配内存 10个变量*27
 
   // * threading
   // TODO(@lu.zhang) Use thread pool?
   TicToc timer;
   for (int i = 0; i < n_sequence; ++i) {
     thread_set[i] =
-        std::thread(&EudmPlanner::SimulateActionSequence, this, ego_vehicle_,
-                    surrounding_fsagents, action_script[i], i);
+        std::thread(&EudmPlanner::SimulateActionSequence, this, ego_vehicle_,     //ego
+                    surrounding_fsagents, action_script[i], i);                   //key vehicle
   }
   for (int i = 0; i < n_sequence; ++i) {
     thread_set[i].join();
@@ -287,14 +287,14 @@ ErrorType EudmPlanner::RunEudm() {
   int num_valid_behaviors = 0;
   for (int i = 0; i < static_cast<int>(sim_res_.size()); ++i) {
     if (sim_res_[i] == 1) {
-      sim_success = true;
-      num_valid_behaviors++;
+      sim_success = true;           //27个中，只要有一个决策成功，结果成功
+      num_valid_behaviors++;        //成功个数
     }
   }
 
   for (int i = 0; i < n_sequence; ++i) {
     std::ostringstream line_info;
-    line_info << "[Eudm][Result]" << i << " [";
+    line_info << "[Eudm][Result]" << i << " [";      //i决策内容  [MMMMM｜KKKKK]
     for (const auto& a : action_script[i]) {
       line_info << DcpTree::RetLonActionName(a.lon);
     }
@@ -303,13 +303,12 @@ ErrorType EudmPlanner::RunEudm() {
       line_info << DcpTree::RetLatActionName(a.lat);
     }
     line_info << "]";
-    line_info << "[s:" << sim_res_[i] << "|r:" << risky_res_[i]
+    line_info << "[s:" << sim_res_[i] << "|r:" << risky_res_[i]     //i决策结果     [s:0|r:0|c:0.000]
               << "|c:" << std::fixed << std::setprecision(3) << final_cost_[i]
               << "]";
     line_info << " " << sim_info_[i] << "\n";
     if (sim_res_[i]) {
-      line_info << "[Eudm][Result][e;s;n;w:";
-      for (const auto& c : progress_cost_[i]) {
+      line_info << "[Eudm][Result][e;s;n;w:";       //i cost 打印 [e;s;n;w:0.04_0.00;0.00_0.00;0.00;1.00|...]
         line_info << std::fixed << std::setprecision(2)
                   << c.efficiency.ego_to_desired_vel << "_"
                   << c.efficiency.leading_to_desired_vel << ";" << c.safety.rss
@@ -751,7 +750,7 @@ ErrorType EudmPlanner::SimulateActionSequence(
 
   if (sub_sim_res.front() == 0) {
     sim_res_[seq_id] = 0;
-    sim_info_[seq_id] = sub_sim_info.front();
+    sim_info_[seq_id] = sub_sim_info.front();     //10项
     return kWrongStatus;
   }
 
@@ -971,7 +970,7 @@ ErrorType EudmPlanner::EvaluateMultiThreadSimResults(int* winner_id,
     }
     decimal_t cost = 0.0;
     auto action_seq = dcp_tree_ptr_->action_script()[i];
-    EvaluateSinglePolicyTrajs(progress_cost_[i], tail_cost_[i], action_seq,
+    EvaluateSinglePolicyTrajs(progress_cost_[i], tail_cost_[i], action_seq,  //action_seq没有用
                               &cost);
     final_cost_[i] = cost;
     if (cost < min_cost) {
