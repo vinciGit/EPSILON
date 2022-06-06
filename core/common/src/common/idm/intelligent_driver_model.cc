@@ -74,9 +74,9 @@ ErrorType IntelligentDriverModel::GetAccDesiredAcceleration(
   // ~ leading vehicle.
   decimal_t ds = std::max(0.0, cur_state.s_front - cur_state.s);
   decimal_t acc_cah =
-      (cur_state.v * cur_state.v * -param.kComfortableBrakingDeceleration) /
+      (cur_state.v * cur_state.v * -param.kComfortableBrakingDeceleration) /   //a = v0^2*a/v0^2    current, desire   acc_cah = a* (v_c^2)/(v_d^2)
       (cur_state.v_front * cur_state.v_front -
-       2 * ds * -param.kComfortableBrakingDeceleration);
+       2 * ds * -param.kComfortableBrakingDeceleration);   // v0^2 = vt^2 - 2*a*ds
 
   decimal_t coolness = 0.99;
 
